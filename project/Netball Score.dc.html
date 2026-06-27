@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #0c0f15; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    @keyframes nbpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  </style>
+</helmet>
+
+<div style="height: 100dvh; min-height: 100vh; width: 100%; display: flex; flex-direction: column; background: #0c0f15; font-family: 'Barlow', system-ui, sans-serif; overflow: hidden;">
+
+  <!-- WAVES PANEL -->
+  <div style="flex: 1 1 0; min-height: 0; background: #1366f4; display: flex; flex-direction: column; padding: 12px 16px 10px; position: relative;">
+    <div style="min-height: 42px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 14px; height: 14px; border-radius: 50%; background: #fff;"></div>
+        <span style="font-size: 22px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #fff;">{{ wavesName }}</span>
+      </div>
+      <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: rgba(255,255,255,0.7); text-transform: uppercase;">Home</span>
+    </div>
+
+    <div ref="{{ scoreRef }}" style="flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: {{ scoreFont }}; line-height: 0.82; color: #fff; font-variant-numeric: tabular-nums;">{{ waves }}</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button onClick="{{ wavesMinus }}" style-active="transform: scale(0.92);" style="flex: 0 0 auto; width: 58px; height: 58px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.12); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.06s;">−1</button>
+      <button onClick="{{ wavesPlus }}" style-active="transform: scale(0.97);" style="flex: 1 1 auto; height: 58px; border-radius: 16px; border: none; background: #fff; color: #1366f4; font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.14); transition: transform 0.06s;">＋ GOAL</button>
+    </div>
+  </div>
+
+  <!-- TIMER BAR -->
+  <div style="flex: 0 0 auto; background: #0c0f15; padding: 10px 16px 11px; display: flex; flex-direction: column; gap: 7px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: {{ halfColor }};">{{ halfLabel }}</span>
+      <div style="display: flex; gap: 4px; background: #161b24; border-radius: 12px; padding: 4px;">
+        <button onClick="{{ setSix }}" style="border: none; cursor: pointer; padding: 5px 14px; border-radius: 9px; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 700; background: {{ sixBg }}; color: {{ sixColor }};">6 MIN</button>
+        <button onClick="{{ setTwelve }}" style="border: none; cursor: pointer; padding: 5px 14px; border-radius: 9px; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 700; background: {{ twelveBg }}; color: {{ twelveColor }};">12 MIN</button>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; justify-content: center; gap: 10px;">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 46px; line-height: 1; color: {{ timeColor }}; font-variant-numeric: tabular-nums;">{{ time }}</span>
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 24px; color: #5a6473; font-variant-numeric: tabular-nums;">/ {{ target }}</span>
+    </div>
+
+    <div style="height: 6px; border-radius: 4px; background: #1b212c; overflow: hidden;">
+      <div style="height: 100%; width: {{ progress }}; background: {{ progressColor }}; border-radius: 4px; transition: width 0.4s linear;"></div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 2px;">
+      <button onClick="{{ resetTimer }}" style-active="transform: scale(0.92);" style="flex: 0 0 auto; width: 56px; height: 56px; border-radius: 16px; border: 1px solid #2a323f; background: #161b24; color: #aeb7c4; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.06s;">↺</button>
+      <button onClick="{{ toggleTimer }}" style-active="transform: scale(0.97);" style="flex: 1 1 auto; height: 56px; border-radius: 16px; border: none; background: {{ playBg }}; color: {{ playColor }}; font-family: 'Barlow', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; transition: transform 0.06s;">{{ playLabel }}</button>
+      <button onClick="{{ nextHalf }}" style-active="transform: scale(0.92);" style="flex: 0 0 auto; height: 56px; padding: 0 16px; border-radius: 16px; border: 1px solid #2a323f; background: #161b24; color: #aeb7c4; font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.06s;">{{ nextLabel }}</button>
+    </div>
+  </div>
+
+  <!-- OPP PANEL -->
+  <div style="flex: 1 1 0; min-height: 0; background: #f5318a; display: flex; flex-direction: column; padding: 10px 16px 12px; position: relative;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button onClick="{{ oppMinus }}" style-active="transform: scale(0.92);" style="flex: 0 0 auto; width: 58px; height: 58px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.55); background: rgba(255,255,255,0.12); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.06s;">−1</button>
+      <button onClick="{{ oppPlus }}" style-active="transform: scale(0.97);" style="flex: 1 1 auto; height: 58px; border-radius: 16px; border: none; background: #fff; color: #f5318a; font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.14); transition: transform 0.06s;">＋ GOAL</button>
+    </div>
+
+    <div style="flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: {{ scoreFont }}; line-height: 0.82; color: #fff; font-variant-numeric: tabular-nums;">{{ opp }}</span>
+    </div>
+
+    <div style="min-height: 42px; display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: rgba(255,255,255,0.7); text-transform: uppercase;">Away</span>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 22px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #fff;">{{ oppName }}</span>
+        <div style="width: 14px; height: 14px; border-radius: 50%; background: #fff;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET MATCH (tiny, bottom-safe) -->
+  <button onClick="{{ newMatch }}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; width: 1px; height: 1px; pointer-events: none;">x</button>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:400,&quot;height&quot;:840},&quot;wavesName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Waves&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Teams&quot;},&quot;oppName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Opp&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Teams&quot;}}">
+class Component extends DCLogic {
+  state = {
+    waves: 0,
+    opp: 0,
+    seconds: 0,
+    running: false,
+    half: 1,
+    targetMin: 12,
+    scoreFont: 90,
+  };
+
+  scoreRef = React.createRef();
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('netball-score-v1');
+      if (raw) this.setState({ ...JSON.parse(raw), running: false });
+    } catch (e) {}
+    this._t = setInterval(() => {
+      if (this.state.running) this.setState(s => ({ seconds: s.seconds + 1 }));
+    }, 1000);
+    this.fitScore();
+    if (this.scoreRef.current && window.ResizeObserver) {
+      this._ro = new ResizeObserver(() => this.fitScore());
+      this._ro.observe(this.scoreRef.current);
+    }
+    window.addEventListener('resize', this._fit = () => this.fitScore());
+  }
+  componentWillUnmount() {
+    clearInterval(this._t);
+    if (this._ro) this._ro.disconnect();
+    if (this._fit) window.removeEventListener('resize', this._fit);
+  }
+
+  fitScore() {
+    const el = this.scoreRef.current;
+    if (!el) return;
+    const size = Math.max(16, Math.min(el.clientHeight * 0.8, el.clientWidth * 0.48, 180));
+    if (Math.abs(size - this.state.scoreFont) > 0.5) this.setState({ scoreFont: size });
+  }
+
+  componentDidUpdate() {
+    try {
+      const { waves, opp, seconds, half, targetMin } = this.state;
+      localStorage.setItem('netball-score-v1', JSON.stringify({ waves, opp, seconds, half, targetMin }));
+    } catch (e) {}
+  }
+
+  buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+
+  fmt(s) {
+    const m = Math.floor(s / 60), ss = s % 60;
+    return m + ':' + (ss < 10 ? '0' : '') + ss;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const targetSec = s.targetMin * 60;
+    const over = s.seconds >= targetSec;
+    const pct = Math.min(100, (s.seconds / targetSec) * 100);
+
+    const halfLabel = s.half === 1 ? '1ST HALF' : s.half === 2 ? '2ND HALF' : 'FULL TIME';
+    const nextLabel = s.half === 1 ? 'HALF ›' : s.half === 2 ? 'FULL TIME' : 'NEW';
+
+    return {
+      waves: s.waves,
+      opp: s.opp,
+      scoreRef: this.scoreRef,
+      scoreFont: s.scoreFont + 'px',
+      wavesName: this.props.wavesName ?? 'Waves',
+      oppName: this.props.oppName ?? 'Opp',
+
+      time: this.fmt(s.seconds),
+      target: this.fmt(targetSec),
+      progress: pct + '%',
+      progressColor: over ? '#ffb020' : '#3ddc84',
+      timeColor: over ? '#ffb020' : '#ffffff',
+      halfColor: s.half === 3 ? '#ffb020' : '#7d8696',
+      halfLabel,
+      nextLabel,
+
+      playLabel: s.running ? '❚❚  PAUSE' : '▶  START',
+      playBg: s.running ? '#161b24' : '#3ddc84',
+      playColor: s.running ? '#ffffff' : '#06210f',
+
+      sixBg: s.targetMin === 6 ? '#2a323f' : 'transparent',
+      sixColor: s.targetMin === 6 ? '#ffffff' : '#7d8696',
+      twelveBg: s.targetMin === 12 ? '#2a323f' : 'transparent',
+      twelveColor: s.targetMin === 12 ? '#ffffff' : '#7d8696',
+
+      wavesPlus: () => { this.buzz(12); this.setState(p => ({ waves: p.waves + 1 })); },
+      wavesMinus: () => { this.buzz(12); this.setState(p => ({ waves: Math.max(0, p.waves - 1) })); },
+      oppPlus: () => { this.buzz(12); this.setState(p => ({ opp: p.opp + 1 })); },
+      oppMinus: () => { this.buzz(12); this.setState(p => ({ opp: Math.max(0, p.opp - 1) })); },
+
+      toggleTimer: () => this.setState(p => ({ running: !p.running })),
+      resetTimer: () => this.setState({ seconds: 0, running: false }),
+      nextHalf: () => this.setState(p => {
+        if (p.half === 1) return { half: 2, seconds: 0, running: false };
+        if (p.half === 2) return { half: 3, running: false };
+        return { half: 1, seconds: 0, running: false, waves: 0, opp: 0 };
+      }),
+      setSix: () => this.setState({ targetMin: 6 }),
+      setTwelve: () => this.setState({ targetMin: 12 }),
+      newMatch: () => this.setState({ waves: 0, opp: 0, seconds: 0, running: false, half: 1 }),
+    };
+  }
+}
+</script>
+</body>
+</html>
