@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Netball Score</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0c0f15">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Netball Score">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      background: #0c0f15;
+      overscroll-behavior: none;
+    }
+
+    #app {
+      height: 100dvh;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Barlow', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Home panel ── */
+    #home-panel {
+      flex: 1 1 0;
+      min-height: 0;
+      background: #1366f4;
+      display: flex;
+      flex-direction: column;
+      padding: max(12px, calc(env(safe-area-inset-top) + 8px)) 16px 10px;
+    }
+
+    /* ── Timer bar ── */
+    #timer-bar {
+      flex: 0 0 auto;
+      background: #0c0f15;
+      padding: 10px 16px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    /* ── Away panel ── */
+    #away-panel {
+      flex: 1 1 0;
+      min-height: 0;
+      background: #f5318a;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 16px max(12px, calc(env(safe-area-inset-bottom) + 8px));
+    }
+
+    /* ── Panel label rows ── */
+    .panel-label-row {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .team-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .team-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .team-name-text {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .home-away-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+    }
+
+    /* ── Score display ── */
+    .score-container {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 90px;
+      line-height: 0.82;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Score button rows ── */
+    .score-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-minus {
+      flex: 0 0 auto;
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-size: 30px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.06s;
+    }
+
+    .btn-plus {
+      flex: 1 1 auto;
+      height: 58px;
+      border-radius: 16px;
+      border: none;
+      background: #fff;
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.14);
+      transition: transform 0.06s;
+    }
+
+    #home-plus { color: #1366f4; }
+    #away-plus { color: #f5318a; }
+
+    .btn-minus:active { transform: scale(0.92); }
+    .btn-plus:active  { transform: scale(0.97); }
+
+    /* ── Timer bar internals ── */
+    .timer-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #half-label {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #7d8696;
+    }
+
+    .min-selector {
+      display: flex;
+      gap: 4px;
+      background: #161b24;
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .btn-min {
+      border: none;
+      cursor: pointer;
+      padding: 5px 14px;
+      border-radius: 9px;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      background: transparent;
+      color: #7d8696;
+    }
+
+    .btn-min.active {
+      background: #2a323f;
+      color: #fff;
+    }
+
+    .timer-display-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #time-display {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 46px;
+      line-height: 1;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #target-display {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 24px;
+      color: #5a6473;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 4px;
+      background: #1b212c;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #3ddc84;
+      border-radius: 4px;
+      transition: width 0.4s linear;
+    }
+
+    .timer-controls-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    #btn-reset {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      border: 1px solid #2a323f;
+      background: #161b24;
+      color: #aeb7c4;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.06s;
+    }
+
+    #btn-play {
+      flex: 1 1 auto;
+      height: 56px;
+      border-radius: 16px;
+      border: none;
+      background: #3ddc84;
+      color: #06210f;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s, transform 0.06s;
+    }
+
+    #btn-next {
+      flex: 0 0 auto;
+      height: 56px;
+      padding: 0 16px;
+      border-radius: 16px;
+      border: 1px solid #2a323f;
+      background: #161b24;
+      color: #aeb7c4;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.06s;
+    }
+
+    #btn-reset:active, #btn-play:active, #btn-next:active { transform: scale(0.93); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Home panel (blue) -->
+  <div id="home-panel">
+    <div class="panel-label-row">
+      <div class="team-name">
+        <div class="team-dot"></div>
+        <span class="team-name-text" id="home-name">Waves</span>
+      </div>
+      <span class="home-away-label">Home</span>
+    </div>
+
+    <div class="score-container" id="home-score-container">
+      <span class="score" id="home-score">0</span>
+    </div>
+
+    <div class="score-buttons">
+      <button class="btn-minus" id="home-minus">−1</button>
+      <button class="btn-plus"  id="home-plus">＋ GOAL</button>
+    </div>
+  </div>
+
+  <!-- Timer bar -->
+  <div id="timer-bar">
+    <div class="timer-top-row">
+      <span id="half-label">1ST HALF</span>
+      <div class="min-selector">
+        <button class="btn-min" id="btn-6min">6 MIN</button>
+        <button class="btn-min active" id="btn-12min">12 MIN</button>
+      </div>
+    </div>
+
+    <div class="timer-display-row">
+      <span id="time-display">0:00</span>
+      <span id="target-display">/ 12:00</span>
+    </div>
+
+    <div class="progress-track">
+      <div id="progress-bar"></div>
+    </div>
+
+    <div class="timer-controls-row">
+      <button id="btn-reset">↺</button>
+      <button id="btn-play">▶  START</button>
+      <button id="btn-next">HALF ›</button>
+    </div>
+  </div>
+
+  <!-- Away panel (pink) -->
+  <div id="away-panel">
+    <div class="score-buttons">
+      <button class="btn-minus" id="away-minus">−1</button>
+      <button class="btn-plus"  id="away-plus">＋ GOAL</button>
+    </div>
+
+    <div class="score-container" id="away-score-container">
+      <span class="score" id="away-score">0</span>
+    </div>
+
+    <div class="panel-label-row">
+      <span class="home-away-label">Away</span>
+      <div class="team-name">
+        <span class="team-name-text" id="away-name">Opp</span>
+        <div class="team-dot"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ── State ──────────────────────────────────────────────────────────
+  const state = {
+    home: 0,
+    away: 0,
+    seconds: 0,
+    running: false,
+    half: 1,        // 1 = 1st, 2 = 2nd, 3 = full time
+    targetMin: 12,
+  };
+
+  let ticker = null;
+
+  // ── DOM refs ───────────────────────────────────────────────────────
+  const $          = id => document.getElementById(id);
+  const homeScore  = $('home-score');
+  const awayScore  = $('away-score');
+  const homeBox    = $('home-score-container');
+  const awayBox    = $('away-score-container');
+  const halfLabel  = $('half-label');
+  const timeDisp   = $('time-display');
+  const targetDisp = $('target-display');
+  const progBar    = $('progress-bar');
+  const btnPlay    = $('btn-play');
+  const btnNext    = $('btn-next');
+  const btn6       = $('btn-6min');
+  const btn12      = $('btn-12min');
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function fmt(s) {
+    const m = Math.floor(s / 60), ss = s % 60;
+    return m + ':' + (ss < 10 ? '0' : '') + ss;
+  }
+
+  function fitScore(container, el) {
+    const size = Math.max(16, Math.min(
+      container.clientHeight * 0.8,
+      container.clientWidth  * 0.48,
+      180
+    ));
+    el.style.fontSize = size + 'px';
+  }
+
+  function buzz(ms) {
+    try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {}
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────
+  function render() {
+    const targetSec = state.targetMin * 60;
+    const over      = state.seconds >= targetSec;
+    const pct       = Math.min(100, (state.seconds / targetSec) * 100);
+
+    homeScore.textContent = state.home;
+    awayScore.textContent = state.away;
+
+    timeDisp.textContent  = fmt(state.seconds);
+    timeDisp.style.color  = over ? '#ffb020' : '#ffffff';
+    targetDisp.textContent = '/ ' + fmt(targetSec);
+
+    progBar.style.width      = pct + '%';
+    progBar.style.background = over ? '#ffb020' : '#3ddc84';
+
+    const HALF_LABELS = ['1ST HALF', '2ND HALF', 'FULL TIME'];
+    const NEXT_LABELS = ['HALF ›', 'FULL TIME', 'NEW'];
+    halfLabel.textContent = HALF_LABELS[state.half - 1];
+    halfLabel.style.color = state.half === 3 ? '#ffb020' : '#7d8696';
+    btnNext.textContent   = NEXT_LABELS[state.half - 1];
+
+    btnPlay.textContent       = state.running ? '❚❚  PAUSE' : '▶  START';
+    btnPlay.style.background  = state.running ? '#161b24' : '#3ddc84';
+    btnPlay.style.color       = state.running ? '#ffffff' : '#06210f';
+
+    btn6.classList.toggle('active',  state.targetMin === 6);
+    btn12.classList.toggle('active', state.targetMin === 12);
+
+    save();
+  }
+
+  // ── Persistence ────────────────────────────────────────────────────
+  function save() {
+    try {
+      const { home, away, seconds, half, targetMin } = state;
+      localStorage.setItem('netball-score-v1', JSON.stringify({ home, away, seconds, half, targetMin }));
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem('netball-score-v1');
+      if (raw) Object.assign(state, { ...JSON.parse(raw), running: false });
+    } catch (e) {}
+  }
+
+  // ── Timer ──────────────────────────────────────────────────────────
+  function startTicker() {
+    if (!ticker) ticker = setInterval(() => { state.seconds++; render(); }, 1000);
+  }
+
+  function stopTicker() {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+  }
+
+  // ── Event handlers ─────────────────────────────────────────────────
+  $('home-plus').addEventListener('click', () => { buzz(12); state.home++;                            render(); });
+  $('home-minus').addEventListener('click', () => { buzz(12); state.home = Math.max(0, state.home - 1); render(); });
+  $('away-plus').addEventListener('click', () => { buzz(12); state.away++;                            render(); });
+  $('away-minus').addEventListener('click', () => { buzz(12); state.away = Math.max(0, state.away - 1); render(); });
+
+  $('btn-reset').addEventListener('click', () => {
+    state.seconds = 0;
+    state.running = false;
+    stopTicker();
+    render();
+  });
+
+  $('btn-play').addEventListener('click', () => {
+    state.running = !state.running;
+    state.running ? startTicker() : stopTicker();
+    render();
+  });
+
+  $('btn-next').addEventListener('click', () => {
+    stopTicker();
+    if (state.half === 1)      Object.assign(state, { half: 2, seconds: 0, running: false });
+    else if (state.half === 2) Object.assign(state, { half: 3, running: false });
+    else                       Object.assign(state, { half: 1, seconds: 0, running: false, home: 0, away: 0 });
+    render();
+  });
+
+  btn6.addEventListener('click',  () => { state.targetMin = 6;  render(); });
+  btn12.addEventListener('click', () => { state.targetMin = 12; render(); });
+
+  // ── Score font fitting ─────────────────────────────────────────────
+  const ro = new ResizeObserver(() => {
+    fitScore(homeBox, homeScore);
+    fitScore(awayBox, awayScore);
+  });
+  ro.observe(homeBox);
+  ro.observe(awayBox);
+
+  // ── Boot ───────────────────────────────────────────────────────────
+  load();
+  render();
+  fitScore(homeBox, homeScore);
+  fitScore(awayBox, awayScore);
+</script>
+</body>
+</html>
