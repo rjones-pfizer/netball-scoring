@@ -105,6 +105,18 @@
       color: #fff;
     }
 
+    .team-name {
+      cursor: pointer;
+    }
+
+    .team-name::after {
+      content: '✎';
+      font-size: 14px;
+      margin-left: 6px;
+      opacity: 0.45;
+      font-weight: 400;
+    }
+
     .home-away-label {
       font-size: 13px;
       font-weight: 600;
@@ -318,7 +330,7 @@
       transition: transform 0.06s;
     }
 
-    #btn-reset:active, #btn-play:active, #btn-next:active { transform: scale(0.93); }
+    #btn-reset:active, #btn-play:active, #btn-next:active, #btn-share:active { transform: scale(0.93); }
 
     #btn-new-game {
       width: 100%;
@@ -343,6 +355,119 @@
     }
 
     #btn-new-game:active { transform: scale(0.97); }
+
+    /* ── Share button ── */
+    #btn-share {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      border: 1px solid #2a323f;
+      background: #161b24;
+      color: #aeb7c4;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.06s;
+    }
+
+    /* ── Name edit modal ── */
+    #name-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #name-modal.open {
+      display: flex;
+    }
+
+    #name-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+    }
+
+    #name-modal-card {
+      position: relative;
+      background: #1b212c;
+      border-radius: 22px;
+      padding: 24px 20px 20px;
+      width: min(340px, calc(100vw - 40px));
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #name-modal-label {
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    #name-input {
+      background: #0c0f15;
+      border: 1.5px solid #2a323f;
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: #fff;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      outline: none;
+      width: 100%;
+      user-select: text;
+      -webkit-user-select: text;
+      caret-color: #3ddc84;
+    }
+
+    #name-input:focus {
+      border-color: #3ddc84;
+    }
+
+    #name-modal-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    #name-cancel {
+      flex: 1;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid #2a323f;
+      background: transparent;
+      color: #aeb7c4;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.06s;
+    }
+
+    #name-save {
+      flex: 2;
+      height: 52px;
+      border-radius: 14px;
+      border: none;
+      background: #3ddc84;
+      color: #06210f;
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.06s;
+    }
+
+    #name-cancel:active, #name-save:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
@@ -351,7 +476,7 @@
   <!-- Home panel (blue) -->
   <div id="home-panel">
     <div class="panel-label-row">
-      <div class="team-name">
+      <div class="team-name" id="home-name-row">
         <div class="team-dot"></div>
         <span class="team-name-text" id="home-name">Waves</span>
       </div>
@@ -391,6 +516,13 @@
       <button id="btn-reset">↺</button>
       <button id="btn-play">▶  START</button>
       <button id="btn-next">HALF ›</button>
+      <button id="btn-share" aria-label="Share score">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+      </button>
     </div>
     <button id="btn-new-game">NEW GAME</button>
   </div>
@@ -408,9 +540,22 @@
 
     <div class="panel-label-row">
       <span class="home-away-label">Away</span>
-      <div class="team-name">
+      <div class="team-name" id="away-name-row">
         <span class="team-name-text" id="away-name">Opp</span>
         <div class="team-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Name edit modal -->
+  <div id="name-modal">
+    <div id="name-modal-backdrop"></div>
+    <div id="name-modal-card">
+      <p id="name-modal-label">Team Name</p>
+      <input id="name-input" type="text" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+      <div id="name-modal-btns">
+        <button id="name-cancel">Cancel</button>
+        <button id="name-save">Save</button>
       </div>
     </div>
   </div>
@@ -425,6 +570,8 @@
   const state = {
     home: 0,
     away: 0,
+    homeName: 'Waves',
+    awayName: 'Opp',
     seconds: 0,
     running: false,
     half: 1,        // 1 = 1st, 2 = 2nd, 3 = full time
@@ -432,6 +579,7 @@
   };
 
   let ticker = null;
+  let editingTeam = null;
 
   // ── DOM refs ───────────────────────────────────────────────────────
   const $          = id => document.getElementById(id);
@@ -475,6 +623,8 @@
 
     homeScore.textContent = state.home;
     awayScore.textContent = state.away;
+    $('home-name').textContent = state.homeName;
+    $('away-name').textContent = state.awayName;
 
     timeDisp.textContent  = fmt(state.seconds);
     timeDisp.style.color  = over ? '#ffb020' : '#ffffff';
@@ -502,8 +652,8 @@
   // ── Persistence ────────────────────────────────────────────────────
   function save() {
     try {
-      const { home, away, seconds, half, targetMin } = state;
-      localStorage.setItem('netball-score-v1', JSON.stringify({ home, away, seconds, half, targetMin }));
+      const { home, away, homeName, awayName, seconds, half, targetMin } = state;
+      localStorage.setItem('netball-score-v1', JSON.stringify({ home, away, homeName, awayName, seconds, half, targetMin }));
     } catch (e) {}
   }
 
@@ -573,6 +723,123 @@
       }, 2500);
     }
   });
+
+  // ── Name editor ────────────────────────────────────────────────────
+  const nameModal  = $('name-modal');
+  const nameInput  = $('name-input');
+
+  function showNameEditor(team) {
+    editingTeam = team;
+    nameInput.value = team === 'home' ? state.homeName : state.awayName;
+    nameModal.classList.add('open');
+    setTimeout(() => { nameInput.focus(); nameInput.select(); }, 60);
+  }
+
+  function closeNameEditor() {
+    nameModal.classList.remove('open');
+    editingTeam = null;
+  }
+
+  function saveName() {
+    const val = nameInput.value.trim();
+    if (val && editingTeam) {
+      if (editingTeam === 'home') state.homeName = val;
+      else                        state.awayName  = val;
+      render();
+    }
+    closeNameEditor();
+  }
+
+  $('home-name-row').addEventListener('click', () => showNameEditor('home'));
+  $('away-name-row').addEventListener('click', () => showNameEditor('away'));
+  $('name-modal-backdrop').addEventListener('click', closeNameEditor);
+  $('name-cancel').addEventListener('click', closeNameEditor);
+  $('name-save').addEventListener('click', saveName);
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveName(); });
+
+  // ── Share score ─────────────────────────────────────────────────────
+  function shareScore() {
+    const W = 800, H = 460, BAR = 80;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Rounded clip
+    const R = 28;
+    ctx.beginPath();
+    ctx.moveTo(R, 0); ctx.lineTo(W - R, 0);
+    ctx.quadraticCurveTo(W, 0, W, R);
+    ctx.lineTo(W, H - R); ctx.quadraticCurveTo(W, H, W - R, H);
+    ctx.lineTo(R, H); ctx.quadraticCurveTo(0, H, 0, H - R);
+    ctx.lineTo(0, R); ctx.quadraticCurveTo(0, 0, R, 0);
+    ctx.closePath();
+    ctx.clip();
+
+    const scoreH = H - BAR;
+
+    // Halves
+    ctx.fillStyle = '#1366f4';
+    ctx.fillRect(0, 0, W / 2, scoreH);
+    ctx.fillStyle = '#f5318a';
+    ctx.fillRect(W / 2, 0, W / 2, scoreH);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // HOME/AWAY labels
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '600 13px "Barlow", sans-serif';
+    ctx.fillText('HOME', W / 4, 42);
+    ctx.fillText('AWAY', 3 * W / 4, 42);
+
+    // Team names
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px "Barlow", sans-serif';
+    ctx.fillText(state.homeName.toUpperCase(), W / 4, 76);
+    ctx.fillText(state.awayName.toUpperCase(), 3 * W / 4, 76);
+
+    // Scores
+    ctx.font = 'bold 160px "Barlow Condensed", sans-serif';
+    ctx.fillText(state.home, W / 4, scoreH / 2 + 24);
+    ctx.fillText(state.away, 3 * W / 4, scoreH / 2 + 24);
+
+    // Bottom bar
+    ctx.fillStyle = '#0c0f15';
+    ctx.fillRect(0, scoreH, W, BAR);
+
+    // Half label
+    const HALF_LABELS = ['1ST HALF', '2ND HALF', 'FULL TIME'];
+    ctx.fillStyle = state.half === 3 ? '#ffb020' : '#ffffff';
+    ctx.font = 'bold 30px "Barlow Condensed", sans-serif';
+    ctx.fillText(HALF_LABELS[state.half - 1], W / 2, scoreH + BAR / 2);
+
+    // Synchronous blob via data URL to preserve user-gesture for share sheet
+    const dataUrl = canvas.toDataURL('image/png');
+    const arr   = dataUrl.split(',');
+    const bstr  = atob(arr[1]);
+    const u8arr = new Uint8Array(bstr.length);
+    for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
+    const blob = new Blob([u8arr], { type: 'image/png' });
+    const file = new File([blob], 'netball-score.png', { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Netball Score' }).catch(() => {});
+    } else if (navigator.share) {
+      navigator.share({
+        title: 'Netball Score',
+        text: `${state.homeName} ${state.home} – ${state.awayName} ${state.away}`
+      }).catch(() => {});
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'netball-score.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    }
+  }
+
+  $('btn-share').addEventListener('click', () => { buzz(12); shareScore(); });
 
   // ── Score font fitting ─────────────────────────────────────────────
   const ro = new ResizeObserver(() => {
